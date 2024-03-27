@@ -1,3 +1,11 @@
+```bash
+touch .env
+```
+
+Environment Variables
+
+- `DB_URL` = elephantsql connection string
+- `PORT` = 3001
 <table>
 <thead>
 <tr>
