@@ -10,8 +10,7 @@ app.use(cors());
 app.use(express.json());
 
 // Controllers
-app.use("/raffle", raffleController);
-app.use("/participants", partController);
+app.use("/raffles", raffleController);
 
 // Health check
 app.get("/", (request, response) => {
