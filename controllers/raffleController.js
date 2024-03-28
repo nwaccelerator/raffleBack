@@ -6,6 +6,7 @@ const {
   getRaffleById,
   createRaffle,
   addNewParticipant,
+  getRaffleWinner,
   pickWinner,
 } = require("../queries/raffleQueries");
 
@@ -21,9 +22,9 @@ const raffleController = Router();
 
 raffleController.get("/", async (request, response) => {
   try {
-    const r = await getAllRaffles();
-    response.status(200).json({ data: r });
-  } catch (err) {
+    const data = await getAllRaffles();
+    response.status(200).json({ data });
+  } catch (error) {
     response.status(500).json({ error: err.message });
   }
 });
@@ -31,15 +32,14 @@ raffleController.get("/", async (request, response) => {
 raffleController.get("/:id", validateId, async (request, response) => {
   try {
     const { id } = request.params;
-    const r = await getRaffleById(id);
-    if (!r) {
+    const data = await getRaffleById(id);
+    if (!data) {
       response
         .status(404)
         .json({ error: `Could not find raffle with id ${id}` });
-    }
-    response.status(200).json({ data: r });
-  } catch (err) {
-    response.status(500).json({ error: err.message });
+    } else response.status(200).json({ data });
+  } catch (error) {
+    response.status(500).json({ error });
   }
 });
 
@@ -54,9 +54,9 @@ raffleController.get(
         response
           .status(404)
           .json({ error: `Could not find raffle with id ${id}` });
-      } else response.status(200).json({ data: data });
-    } catch (err) {
-      response.status(500).json({ error: err.message });
+      } else response.status(200).json({ data });
+    } catch (error) {
+      response.status(500).json({ error: error.message });
     }
   },
 );
@@ -65,11 +65,11 @@ raffleController.get("/:id/winner", validateId, async (request, response) => {
   try {
     const { id } = request.params;
     const data = await getRaffleWinner(id);
-    if (!data.length) {
+    if (!data) {
       response.status(404).json({ error: `No winner in raffle of id ${id}` });
-    } else response.status(200).json({ data: data });
+    } else response.status(200).json({ data });
   } catch (error) {
-    response.status(500).json({ error });
+    response.status(500).json({ error: error.message });
   }
 });
 
@@ -79,7 +79,7 @@ raffleController.post("/", isValidNewRaffle, async (request, response) => {
     const newRow = await createRaffle(r);
     response.status(201).json({ data: newRow });
   } catch (error) {
-    response.status(500).json({ error });
+    response.status(500).json({ error: error.message });
   }
 });
 
@@ -92,9 +92,9 @@ raffleController.post(
     const r = request.body;
     try {
       const newRow = await addNewParticipant(r, request.params.id);
-      response.status(201).json({ data: newRow });
+      if (newRow) response.status(201).json({ data: newRow });
     } catch (error) {
-      response.status(500).json({ error });
+      response.status(500).json({ error: error.message });
     }
   },
 );
@@ -113,9 +113,10 @@ raffleController.put(
         try {
           const newRow = await pickWinner(id, r, contest);
           //return winner_id
-          response.status(200).json({ data: newRow });
+          if (newRow) response.status(200).json({ data: newRow });
+          else response.status(404).json({ error: `Invalid secret_token` });
         } catch (error) {
-          response.status(500).json({ error });
+          response.status(500).json({ error: error.message });
         }
       } else {
         response
@@ -123,7 +124,7 @@ raffleController.put(
           .json({ error: `No contestants for raffle id ${id}` });
       }
     } catch (error) {
-      response.status(500).send("Internal Server Error");
+      response.status(500).json({ error: error.message });
     }
   },
 );

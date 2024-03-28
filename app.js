@@ -1,15 +1,14 @@
 const express = require("express");
 const cors = require("cors");
+const morgan = require("morgan");
 const raffleController = require("./controllers/raffleController");
-const partController = require("./controllers/partController");
 
 const app = express();
-
-// Middleware
+app.use(morgan("dev"));
 app.use(cors());
 app.use(express.json());
 
-// Controllers
+// Controller
 app.use("/raffles", raffleController);
 
 // Health check
