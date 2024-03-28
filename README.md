@@ -1,11 +1,36 @@
+Download this server
+
+```bash
+git clone <code_url> && cd raffleBack
+npm install
+```
+
 ```bash
 touch .env
+```
+
+Build SQL schema in elephantsql database
+
+```bash
+psql -d <elephantsql connection string> -f db/schema.sql
 ```
 
 Environment Variables
 
 - `DB_URL` = elephantsql connection string
 - `PORT` = 3001
+
+Running the server
+
+```bash
+# if nodemon installed
+npm run dev
+```
+
+```bash
+npm run start
+```
+
 <table>
 <thead>
 <tr>
