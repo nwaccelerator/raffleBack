@@ -1,10 +1,11 @@
 const express = require("express");
 const cors = require("cors");
+const morgan = require("morgan");
 const raffleController = require("./controllers/raffleController");
 const partController = require("./controllers/partController");
 
 const app = express();
-
+app.use(morgan("dev"));
 // Middleware
 app.use(cors());
 app.use(express.json());
