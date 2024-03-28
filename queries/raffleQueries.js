@@ -14,7 +14,7 @@ const getRaffleById = async (id) => {
 
 const getRaffleAndPart = async (id) => {
   const characters = await db.any(
-    `SELECT r.*, p.id p_id, first_name, last_name, email, phone from raffle r left join participants
+    `SELECT r.id, name, created_at, winner_id, p.id p_id, first_name, last_name, email, phone from raffle r left join participants
 p on r.id = raffle_id where raffle_id = $1`,
     id,
   );
@@ -44,8 +44,8 @@ const addNewParticipant = async (args, id) => {
     `insert into participants(first_name, last_name, email, phone, raffle_id) values ($1, $2, $3, $4, (select id from raffle where winner_id is NULL and id = $5))
 returning *`,
     [
-      args["first_name"],
-      args["last_name"],
+      args["first_name"].trim(),
+      args["last_name"].trim(),
       args["email"],
       args?.phone || null,
       id,
@@ -66,7 +66,7 @@ const pickWinner = async (id, args, contest) => {
 
 const getRaffleWinner = async (id) => {
   const actor = await db.oneOrNone(
-    `select r.*, first_name, last_name, email, phone
+    `select r.id, name, created_at, winner_id, first_name, last_name, email, phone
 from raffle r join participants p on winner_id = p.id where r.id = $1`,
     id,
   );
