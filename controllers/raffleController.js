@@ -114,7 +114,10 @@ raffleController.put(
           const newRow = await pickWinner(id, r, contest);
           //return winner_id
           if (newRow) response.status(200).json({ data: newRow });
-          else response.status(404).json({ error: `Invalid secret_token` });
+          else
+            response
+              .status(403)
+              .json({ error: `Unauthorized invalid secret_token` });
         } catch (error) {
           response.status(500).json({ error: error.message });
         }

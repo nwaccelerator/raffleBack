@@ -9,7 +9,7 @@ app.use(cors());
 app.use(express.json());
 
 // Controller
-app.use("/raffles", raffleController);
+app.use("/api/raffles", raffleController);
 
 // Health check
 app.get("/", (request, response) => {
