@@ -14,8 +14,8 @@ const getRaffleById = async (id) => {
 
 const getRaffleAndPart = async (id) => {
   const characters = await db.any(
-    `SELECT r.id, name, created_at, winner_id, p.id p_id, first_name, last_name, email, phone from raffle r left join participants
-p on r.id = raffle_id where raffle_id = $1`,
+    `SELECT r.id, name, created_at, winner_id, pt.id p_id, first_name, last_name, email, phone, count(*) over (partition by r.id) as result_count from raffle r left join participants_raffle
+p on r.id = raffle_id left join participants pt on participant_id = pt.id where r.id = $1`,
     id,
   );
   return characters;
@@ -23,7 +23,7 @@ p on r.id = raffle_id where raffle_id = $1`,
 
 const getPartFromNewRaffle = async (id) => {
   const characters = await db.any(
-    `SELECT r.*, p.id p_id, first_name, last_name, email, phone from raffle r left join participants
+    `SELECT r.*, p.participant_id p_id from raffle r left join participants_raffle
 p on r.id = raffle_id where raffle_id = $1 and winner_id is NULL`,
     id,
   );
@@ -39,17 +39,23 @@ returning *`,
   return newRow;
 };
 
-const addNewParticipant = async (args, id) => {
+const addNewParticipant = async (args) => {
   const newRow = await db.oneOrNone(
-    `insert into participants(first_name, last_name, email, phone, raffle_id) values ($1, $2, $3, $4, (select id from raffle where winner_id is NULL and id = $5))
-returning *`,
+    `insert into participants(first_name, last_name, email, phone) values ($1, $2, $3, $4) on conflict do nothing returning *`,
     [
       args["first_name"].trim(),
       args["last_name"].trim(),
       args["email"],
       args?.phone || null,
-      id,
     ],
+  );
+  return newRow;
+};
+
+const addNewRaffleParticipant = async (id, args) => {
+  const newRow = await db.oneOrNone(
+    `insert into participants_raffle(raffle_id, participant_id) values ($1, (select id from participants where email = $2)) on conflict do nothing returning *`,
+    [id, args["email"]],
   );
   return newRow;
 };
@@ -67,7 +73,7 @@ const pickWinner = async (id, args, contest) => {
 const getRaffleWinner = async (id) => {
   const actor = await db.oneOrNone(
     `select r.id, name, created_at, winner_id, first_name, last_name, email, phone
-from raffle r join participants p on winner_id = p.id where r.id = $1`,
+from raffle r join participants_raffle pr on (r.id = raffle_id and winner_id = participant_id) join participants p on participant_id = p.id where r.id = $1`,
     id,
   );
   return actor;
@@ -79,6 +85,7 @@ module.exports = {
   getRaffleAndPart,
   getPartFromNewRaffle,
   addNewParticipant,
+  addNewRaffleParticipant,
   createRaffle,
   pickWinner,
   getRaffleWinner,

@@ -29,8 +29,8 @@ create table
 create table
   participants_raffle (
     jt_id serial primary key,
-    raffle_id integer REFERENCES raffle(id) on delete cascade,
-    participant_id integer REFERENCES participants(id) on delete cascade,
+    raffle_id integer not null REFERENCES raffle(id) on delete cascade,
+    participant_id integer not null REFERENCES participants(id) on delete cascade,
 CONSTRAINT unique_raffle_participant UNIQUE (raffle_id, participant_id)
   );
 
