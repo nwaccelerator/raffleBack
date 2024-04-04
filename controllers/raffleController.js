@@ -56,9 +56,7 @@ raffleController.get(
           .status(404)
           .json({ error: `Could not find raffle with id ${id}` });
       } else if (data[0].result_count == 1 && !data[0].p_id) {
-        response
-          .status(404)
-          .json({ error: `No participants for raffle id ${id}` });
+        response.status(200).json({ data: [] });
       } else response.status(200).json({ data });
     } catch (error) {
       response.status(500).json({ error: error.message });
@@ -110,8 +108,11 @@ raffleController.post(
     }
 
     try {
-      await addNewParticipant(r);
-      const newRowJt = await addNewRaffleParticipant(request.params.id, r);
+      const newRow = await addNewParticipant(r);
+      const newRowJt = await addNewRaffleParticipant(
+        request.params.id,
+        newRow?.id,
+      );
       if (newRowJt?.jt_id) response.status(201).json({ data: newRowJt });
       else
         response.status(400).json({
@@ -136,7 +137,6 @@ raffleController.put(
         contest = contest.map((item) => item?.p_id);
         try {
           const newRow = await pickWinner(id, r, contest);
-          //return winner_id
           if (newRow) response.status(200).json({ data: newRow });
           else
             response

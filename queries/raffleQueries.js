@@ -41,7 +41,14 @@ returning *`,
 
 const addNewParticipant = async (args) => {
   const newRow = await db.oneOrNone(
-    `insert into participants(first_name, last_name, email, phone) values ($1, $2, $3, $4) on conflict do nothing returning *`,
+    `WITH inserted_row AS (
+  INSERT INTO participants (first_name, last_name, email, phone)
+  VALUES ($1, $2, $3, $4)
+  ON CONFLICT do nothing returning id
+)
+SELECT id FROM inserted_row
+UNION
+SELECT id FROM participants WHERE email = $3`,
     [
       args["first_name"].trim(),
       args["last_name"].trim(),
@@ -52,10 +59,10 @@ const addNewParticipant = async (args) => {
   return newRow;
 };
 
-const addNewRaffleParticipant = async (id, args) => {
+const addNewRaffleParticipant = async (id, p_id) => {
   const newRow = await db.oneOrNone(
-    `insert into participants_raffle(raffle_id, participant_id) values ($1, (select id from participants where email = $2)) on conflict do nothing returning *`,
-    [id, args["email"]],
+    `insert into participants_raffle(raffle_id, participant_id) values ($1, $2) on conflict do nothing returning *`,
+    [id, p_id],
   );
   return newRow;
 };
